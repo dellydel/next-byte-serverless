@@ -1,0 +1,159 @@
+service: next-byte-serverless-${opt:stage}
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.11
+  stackName: next-byte-serverless-${opt:stage}
+  environment: ${file(env.yml):${self:custom.stage}}
+  apiGateway:
+    restApiId: ${ssm:nextbyte-api-restApiId-${opt:stage}}
+    restApiRootResourceId: ${ssm:nextbyte-api-restApiRootResourceId-${opt:stage}}
+  iam:
+    role: IAMServerlessRole
+
+custom:
+  stage: ${opt:stage}
+  pythonRequirements:
+    layer: true
+
+package:
+  individually: true
+  patterns:
+    - "!./**"
+    - "src/http_response.py"
+    - "src/error_handler.py"
+    - "src/utils/unmarshall.py"
+    - "!package.json"
+    - "!package-lock.json"
+    - "!node_modules/**"
+
+functions:
+  ping:
+    name: ping-lambda-${opt:stage}
+    package:
+      patterns:
+        - src/ping.py
+    handler: src/ping.handler
+    events:
+      - http:
+          path: /ping
+          method: get
+  contact-lambda:
+    name: contact-lambda-${opt:stage}
+    package:
+      patterns:
+        - "src/contact.py"
+        - "src/contact_handler.py"
+    handler: src/contact_handler.handler
+    events:
+      - http:
+          path: /contact
+          method: post
+          cors: true
+  materials-lambda:
+    name: materials-lambda-${opt:stage}
+    package:
+      patterns:
+        - "src/materials.py"
+        - "src/materials_handler.py"
+    handler: src/materials_handler.handler
+    events:
+      - http:
+          path: /materials
+          method: get
+  user-payments-lambda:
+    name: user-payments-lambda-${opt:stage}
+    package:
+      patterns:
+        - "src/user_payments.py"
+        - "src/user_payments_handler.py"
+    handler: src/user_payments_handler.handler
+    events:
+      - http:
+          path: /user-payments
+          method: get
+  registration-lambda-get:
+    name: registration-lambda-get-${opt:stage}
+    package:
+      patterns:
+        - "src/registration.py"
+        - "src/registration_handler_get.py"
+    handler: src/registration_handler_get.handler
+    events:
+      - http:
+          path: /registration
+          method: get
+          cors: true
+  registration-lambda-post:
+    name: registration-lambda-post-${opt:stage}
+    package:
+      patterns:
+        - "src/registration.py"
+        - "src/registration_handler_post.py"
+    handler: src/registration_handler_post.handler
+    events:
+      - http:
+          path: /registration
+          method: post
+          cors: true
+
+resources:
+  - Resources:
+      IAMServerlessRole:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Principal:
+                  Service:
+                    - lambda.amazonaws.com
+                Action:
+                  - sts:AssumeRole
+          Policies:
+            - PolicyName: Policy_api-lambda-db
+              PolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - dynamodb:BatchGetItem
+                      - dynamodb:BatchWriteItem
+                      - dynamodb:TagResource
+                      - dynamodb:UntagResource
+                      - dynamodb:PutItem
+                      - dynamodb:DeleteItem
+                      - dynamodb:GetItem
+                      - dynamodb:Scan
+                      - dynamodb:Query
+                      - dynamodb:UpdateItem
+                    Resource:
+                      - arn:aws:dynamodb:us-east-1:893303684985:table/next-byte-Students-${opt:stage}
+                      - arn:aws:dynamodb:us-east-1:893303684985:table/next-byte-Courses-${opt:stage}
+                      - arn:aws:dynamodb:us-east-1:893303684985:table/next-byte-Registrations-${opt:stage}
+                      - arn:aws:dynamodb:us-east-1:893303684985:table/next-byte-Contact-${opt:stage}
+                      - arn:aws:dynamodb:us-east-1:893303684985:table/next-byte-Students-${opt:stage}/index/EmailIndex
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: "*"
+                  - Effect: Allow
+                    Action:
+                      - s3:GetObject
+                      - s3:ListBucket
+                    Resource:
+                      - arn:aws:s3:::nextbyte-course-materials
+                      - arn:aws:s3:::nextbyte-course-materials/*
+                  - Effect: Allow
+                    Action:
+                      - sns:Publish
+                    Resource:
+                      - arn:aws:sns:us-east-1:893303684985:ContactTopic-${opt:stage}
+
+plugins:
+  - serverless-offline
+  - serverless-python-requirements
