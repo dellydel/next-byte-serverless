@@ -69,6 +69,8 @@ functions:
         - "src/user_payments.py"
         - "src/user_payments_handler.py"
     handler: src/user_payments_handler.handler
+    layers:
+      - !Ref PythonRequirementsLambdaLayer
     events:
       - http:
           path: /user-payments
@@ -80,6 +82,8 @@ functions:
         - "src/registration.py"
         - "src/registration_handler_get.py"
     handler: src/registration_handler_get.handler
+    layers:
+      - !Ref PythonRequirementsLambdaLayer
     events:
       - http:
           path: /registration
@@ -92,6 +96,8 @@ functions:
         - "src/registration.py"
         - "src/registration_handler_post.py"
     handler: src/registration_handler_post.handler
+    layers:
+      - !Ref PythonRequirementsLambdaLayer
     events:
       - http:
           path: /registration
@@ -105,6 +111,8 @@ functions:
         - "src/registration.py"
         - "src/courses_handler_get.py"
     handler: src/courses_handler_get.handler
+    layers:
+      - !Ref PythonRequirementsLambdaLayer
     events:
       - http:
           path: /courses
