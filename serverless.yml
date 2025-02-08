@@ -102,8 +102,8 @@ functions:
     package:
       patterns:
         - "src/courses.py"
-        - "src/courses_handler.py"
-    handler: src/courses_handler.handler
+        - "src/courses_handler_get.py"
+    handler: src/courses_handler_get.handler
     events:
       - http:
           path: /courses
