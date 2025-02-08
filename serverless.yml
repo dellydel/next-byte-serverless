@@ -102,6 +102,7 @@ functions:
     package:
       patterns:
         - "src/courses.py"
+        - "src.registration.py"
         - "src/courses_handler_get.py"
     handler: src/courses_handler_get.handler
     events:
