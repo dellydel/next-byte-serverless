@@ -15,6 +15,7 @@ def getAllCourses():
   )
   try:
       courses = deserialize(response)
+      print(courses)
       return create_response(200, courses.get("Items"))
   except:
       raise ClientError("Error when attempting to retrieve courses.")
