@@ -11,32 +11,26 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO) 
 
 dynamodb = boto3.client('dynamodb')
-tableName=os.environ.get("COURSES_TABLE")
+table = dynamodb.table(os.environ.get("COURSES_TABLE"))
 
 def getAllCourses():
   logger.info("Starting getAllCourses function")
-  response = dynamodb.scan(
-    TableName=tableName,
-  )
+  response = table.scan()
   try:
       items = response.get("Items", []) 
       logger.info(f"Successfully retrieved {len(items)} courses")
       logger.debug(f"Items: {items}")       
-      deserialized_items = [deserialize(item) for item in items]
-      logger.debug(f"Deserialized Items: {deserialized_items}") 
-      return create_response(200, deserialized_items)
+      return create_response(200, items)
   except ClientError as e:
       logger.error(f"Error retrieving courses: {str(e)}")
       return create_response(500, f"Error retrieving courses: {str(e)}")
   
 def get_courses_by_id(course_ids):
-    response = dynamodb.scan(
-        TableName=tableName,
-    )
+    response = table.scan()
     try:
-        courses = deserialize(response)
+        items = response.get("Items", [])
         registered_courses = [
-            course for course in courses.get("Items", [])
+            course for course in items
             if course.get("id") in course_ids
         ]
         return create_response(200, registered_courses)
