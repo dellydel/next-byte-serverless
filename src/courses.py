@@ -14,11 +14,11 @@ def getAllCourses():
     TableName=tableName,
   )
   try:
-      courses = deserialize(response)
-      print(courses)
-      return create_response(200, courses.get("Items"))
-  except:
-      raise ClientError("Error when attempting to retrieve courses.")
+      items = response.get("Items", []) 
+      deserialized_items = [deserialize(item) for item in items]
+      return create_response(200, deserialized_items)
+  except ClientError as e:
+      return create_response(500, f"Error retrieving courses: {str(e)}")
   
 def get_courses_by_id(course_ids):
     response = dynamodb.scan(
@@ -32,4 +32,4 @@ def get_courses_by_id(course_ids):
         ]
         return create_response(200, registered_courses)
     except ClientError as e:
-        raise ClientError(f"Error when attempting to retrieve courses: {str(e)}")
+        return create_response(500, f"Error retrieving courses: {str(e)}")
