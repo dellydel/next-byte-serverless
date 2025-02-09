@@ -14,8 +14,8 @@ table = dynamodb.Table(os.environ.get("COURSES_TABLE"))
 
 def getAllCourses():
   logger.info("Starting getAllCourses function")
-  response = table.scan()
   try:
+      response = table.scan()
       items = response.get("Items", []) 
       logger.info(f"Successfully retrieved {len(items)} courses")
       logger.debug(f"Items: {items}")       
