@@ -5,13 +5,12 @@ import logging
 from src.http_response import create_response
 from botocore.exceptions import ClientError
 from src.http_response import create_response
-from src.utils.unmarshall import deserialize
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO) 
 
-dynamodb = boto3.client('dynamodb')
-table = dynamodb.table(os.environ.get("COURSES_TABLE"))
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ.get("COURSES_TABLE"))
 
 def getAllCourses():
   logger.info("Starting getAllCourses function")
