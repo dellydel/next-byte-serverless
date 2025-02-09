@@ -10,5 +10,6 @@ def handler(event, _):
     else:
       email = event.get('queryStringParameters').get('email')
       return getRegistrationByEmail(email)   
+
   except ClientError as err:
-      handle_client_error(err)
+      return handle_client_error(err)
