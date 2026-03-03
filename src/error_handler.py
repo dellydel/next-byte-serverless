@@ -2,6 +2,6 @@ from src.http_response import create_response
 import json
 
 def handle_client_error(err):
-    statusCode = err.statusCode if hasattr(err, 'statusCode') else 500
-    message = err.message if hasattr(err, 'message') else 'Internal Server Error'
-    return create_response(statusCode, message)   
+    statusCode = err.response['Error']['Code'] if hasattr(err, 'response') else 500
+    message = err.response['Error']['Message'] if hasattr(err, 'response') else 'Internal Server Error'
+    return create_response(statusCode, json.dumps({"message": message}))   
