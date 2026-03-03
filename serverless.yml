@@ -29,6 +29,13 @@ package:
     - "!node_modules/**"
 
 functions:
+  auto-confirm:
+    name: auto-confirm-lambda-${opt:stage}
+    package:
+      patterns:
+        - src/auto_confirm.py
+    handler: src/auto_confirm.handler
+
   ping:
     name: ping-lambda-${opt:stage}
     package:
