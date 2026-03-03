@@ -1,6 +1,7 @@
 import boto3
 import os
 import stripe
+import uuid
 from src.http_response import create_response
 from botocore.exceptions import ClientError
 from src.utils.unmarshall import deserialize, convert_decimal
@@ -57,3 +58,22 @@ def createCourseRegistration(body):
       return create_response(200, "Transaction recorded successfully.")
     except:
       raise ClientError("Error when recording transaction.")
+    
+def createFreeCourseRegistration(body):
+  try:
+    dynamodb_resource = boto3.resource('dynamodb')
+    table = dynamodb_resource.Table(os.environ.get("REGISTRATIONS_TABLE"))
+    table.put_item(
+      Item = {
+        'id': str(uuid.uuid4()),
+        'amount': "*free",
+        'created': int(datetime.datetime.now().timestamp() * 1000),
+        'email': body.get("email"),
+        'emailLower': body.get("email").lower(),
+        'course_name': body.get("course_name"),
+        'price': 0,
+      }
+    )
+    return create_response(200, "Transaction recorded successfully.")
+  except:
+    raise ClientError("Error when recording transaction.")
