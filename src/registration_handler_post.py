@@ -6,7 +6,7 @@ import json
 def handler(event, _):
   try:
     body = json.loads(event["body"])
-    if body.get("price") == 0:
+    if body.get("price") == "0":
       return createFreeCourseRegistration(body)
     return createCourseRegistration(body)
   except ClientError as err:

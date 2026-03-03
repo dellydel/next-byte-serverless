@@ -4,7 +4,7 @@ from src.registration import getRegistrationByEmail
 
 def handler(event, _):
   try:
-    query_params = event.get('queryStringParameters', {})
+    query_params = event.get('queryStringParameters') or {}
     email = query_params.get('email')
     return  getRegistrationByEmail(email)
   except ClientError as err:

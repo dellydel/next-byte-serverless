@@ -35,7 +35,6 @@ functions:
       patterns:
         - src/auto_confirm.py
     handler: src/auto_confirm.handler
-
   ping:
     name: ping-lambda-${opt:stage}
     package:
@@ -124,6 +123,21 @@ functions:
       - http:
           path: /courses
           method: get
+  courses-lambda-post:
+    name: courses-lambda-post-${opt:stage}
+    package:
+      patterns:
+        - "src/courses.py"
+        - "src/registration.py"
+        - "src/courses_handler_post.py"
+    handler: src/courses_handler_post.handler
+    layers:
+      - !Ref PythonRequirementsLambdaLayer
+    events:
+      - http:
+          path: /courses
+          method: post
+          cors: true
   students-lambda-post:
     name: students-lambda-post-${opt:stage}
     package:

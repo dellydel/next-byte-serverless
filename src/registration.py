@@ -1,13 +1,13 @@
 import boto3
 import os
-import stripe
 import uuid
 from src.http_response import create_response
 from botocore.exceptions import ClientError
 from src.utils.unmarshall import deserialize, convert_decimal
 import datetime
+import stripe
+
 dynamodb = boto3.client('dynamodb')
-stripe.api_key = os.environ.get("STRIPE_SECRET")
 
 def getRegistrationByEmail(email):
   response = dynamodb.scan(
@@ -17,7 +17,7 @@ def getRegistrationByEmail(email):
       ":emailLower": { "S": email.lower() },
       ":email": { "S": email },
     },
-    ProjectionExpression="amount, created, course_name",
+    ProjectionExpression="amount, created, course_name, course_id, email",
     )
   try:
     payments = deserialize(response)
@@ -25,12 +25,15 @@ def getRegistrationByEmail(email):
       'date': datetime.datetime.fromtimestamp(int(obj.get("created")) / 1000).strftime('%Y-%m-%d %H:%M:%S'),
       'amount': convert_decimal(obj.get("amount")),
       'name': obj.get("course_name"),
+      'course_id': obj.get("course_id"),
+      'email': obj.get("email"),
     }, payments.get("Items")))
     return create_response(200, amounts)
-  except: 
-    raise ClientError("Error when attempting to retrieve registrations.")
+  except Exception as e:
+    return create_response(500, {"message": "Error when attempting to retrieve registrations."})
   
 def createCourseRegistration(body):
+  stripe.api_key = os.environ.get("STRIPE_SECRET")
   if body.get("type").equals("payment_intent.succeeded"):
     session = body.get("data").get("object")
     try:
@@ -56,8 +59,8 @@ def createCourseRegistration(body):
         }
       )
       return create_response(200, "Transaction recorded successfully.")
-    except:
-      raise ClientError("Error when recording transaction.")
+    except Exception as e:
+      raise Exception("Error when recording transaction.")
     
 def createFreeCourseRegistration(body):
   try:
@@ -66,14 +69,15 @@ def createFreeCourseRegistration(body):
     table.put_item(
       Item = {
         'id': str(uuid.uuid4()),
-        'amount': "*free",
+        'amount': 0,
         'created': int(datetime.datetime.now().timestamp() * 1000),
         'email': body.get("email"),
         'emailLower': body.get("email").lower(),
         'course_name': body.get("course_name"),
+        'course_id': body.get("course_id"),
         'price': 0,
       }
     )
     return create_response(200, "Transaction recorded successfully.")
-  except:
-    raise ClientError("Error when recording transaction.")
+  except Exception as e:
+    return create_response(500, {"message": "Error when recording transaction."})
