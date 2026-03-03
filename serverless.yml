@@ -117,6 +117,18 @@ functions:
       - http:
           path: /courses
           method: get
+  students-lambda-post:
+    name: students-lambda-post-${opt:stage}
+    package:
+      patterns:
+        - "src/students.py"
+        - "src/students_handler_post.py"
+    handler: src/students_handler_post.handler
+    events:
+      - http:
+          path: /students
+          method: post
+          cors: true
 resources:
   - Resources:
       IAMServerlessRole:
