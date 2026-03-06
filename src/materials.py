@@ -33,7 +33,7 @@ def generate_presigned_urls(objects):
     for obj in objects:
         try:
              url = s3_client.generate_presigned_url('get_object',
-                                                    Params={'Bucket': bucket_name, 'Key': obj['key']},
+                                                    Params={'Bucket': bucket_name, 'Key': obj['Key']},
                                                     ExpiresIn=1800)
              files.append({'name': obj['Key'], 'url': url})
         except ClientError as e:

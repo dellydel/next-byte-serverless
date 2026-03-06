@@ -24,14 +24,11 @@ def getAllCourses():
       logger.error(f"Error retrieving courses: {str(e)}")
       return create_response(500, f"Error retrieving courses: {str(e)}")
   
-def get_courses_by_id(course_ids):
-    response = table.scan()
+def get_course_by_id(course_id):
     try:
-        items = response.get("Items", [])
-        registered_courses = [
-            course for course in items
-            if course.get("id") in course_ids
-        ]
-        return create_response(200, registered_courses)
+        response = table.get_item(Key={'id': course_id})
+        if 'Item' in response:
+            return create_response(200, response['Item'])
+        return create_response(404, {"message": "Course not found"})
     except ClientError as e:
         return create_response(500, f"Error retrieving courses: {str(e)}")

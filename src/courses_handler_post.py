@@ -5,7 +5,8 @@ from src.courses import get_courses_by_id
 def handler(event, _):
     try:
         body = json.loads(event['body'])
-        course_ids = body['courseIds']
+        course_ids = body if isinstance(body, list) else body.get('courseIds', [])
+
         
         if not course_ids:
             return create_response(200, [])

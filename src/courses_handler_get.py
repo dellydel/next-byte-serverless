@@ -1,15 +1,18 @@
 from src.error_handler import handle_client_error
 from botocore.exceptions import ClientError
 from src.registration import getRegistrationByEmail
-from src.courses import getAllCourses 
+from src.courses import getAllCourses, get_course_by_id 
 
 def handler(event, _):
   try:
-    if not event.get('queryStringParameters') or not event.get('queryStringParameters').get('email'):
-      return getAllCourses()
+    query_params = event.get('queryStringParameters') or {}
+    if query_params.get('email'):
+      return getRegistrationByEmail(query_params.get('email'))
+    elif query_params.get('courseId'):
+      course_id = query_params.get('courseId')
+      return get_course_by_id(course_id)
     else:
-      email = event.get('queryStringParameters').get('email')
-      return getRegistrationByEmail(email)   
+      return getAllCourses()
 
   except ClientError as err:
       return handle_client_error(err)

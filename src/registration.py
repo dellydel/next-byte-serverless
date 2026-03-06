@@ -32,6 +32,17 @@ def getRegistrationByEmail(email):
   except Exception as e:
     return create_response(500, {"message": "Error when attempting to retrieve registrations."})
   
+def check_existing_registration(email, course_id):
+  response = dynamodb.scan(
+    TableName=os.environ.get("REGISTRATIONS_TABLE"),
+    FilterExpression="emailLower = :emailLower AND course_id = :course_id",
+    ExpressionAttributeValues={
+      ":emailLower": {"S": email.lower()},
+      ":course_id": {"S": course_id}
+    }
+  )
+  return response.get('Count', 0) > 0
+
 def createCourseRegistration(body):
   stripe.api_key = os.environ.get("STRIPE_SECRET")
   if body.get("type").equals("payment_intent.succeeded"):
@@ -44,8 +55,12 @@ def createCourseRegistration(body):
       lineItems = stripe.checkout.sessions.listLineItems(
         checkout_session.data[0].id
       )
-      table = dynamodb.Table(os.environ.get("REGISTRATIONS_TABLE"))
       line_item = lineItems.get("data")[0]
+
+      if check_existing_registration(session.get("receipt_email"), line_item.price.product):
+        return create_response(409, {"message": "Registration already exists for this course."})
+      
+      table = dynamodb.Table(os.environ.get("REGISTRATIONS_TABLE"))
       table.put_item(
         Item = {
           'id':session.get("id"),
@@ -66,6 +81,13 @@ def createFreeCourseRegistration(body):
   try:
     dynamodb_resource = boto3.resource('dynamodb')
     table = dynamodb_resource.Table(os.environ.get("REGISTRATIONS_TABLE"))
+
+    email = body.get("email")
+    course_id = body.get("course_id")
+    
+    if check_existing_registration(email, course_id):
+      return create_response(409, {"message": "Registration already exists for this course."})
+    
     table.put_item(
       Item = {
         'id': str(uuid.uuid4()),
