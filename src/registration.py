@@ -73,7 +73,7 @@ def createCourseRegistration(body):
           'product_id': line_item.price.product
         }
       )
-      return create_response(200, "Transaction recorded successfully.")
+      return create_response(200, "Registration was successful.")
     except Exception as e:
       raise Exception("Error when recording transaction.")
     
@@ -100,6 +100,6 @@ def createFreeCourseRegistration(body):
         'price': 0,
       }
     )
-    return create_response(200, "Transaction recorded successfully.")
+    return create_response(200, "Registration was successful.")
   except Exception as e:
     return create_response(500, {"message": "Error when recording transaction."})
